@@ -29,6 +29,8 @@ jobs:
 
       - name: Scansione Filesystem con Trivy (CVE, Config, Secrets)
         uses: aquasecurity/trivy-action@master
+        env:
+          TRIVY_OFFLINE_SCAN: 'true'
         with:
           scan-type: 'fs'
           scan-ref: '.'
