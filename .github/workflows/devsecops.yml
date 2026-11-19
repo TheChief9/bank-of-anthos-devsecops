@@ -1,0 +1,37 @@
+name: DevSecOps Security Pipeline
+
+on:
+  push:
+    branches: [ "tesi-devsecops-anchor" ]
+  pull_request:
+    branches: [ "tesi-devsecops-anchor" ]
+  workflow_dispatch:
+
+jobs:
+  sast-semgrep:
+    name: SAST - Semgrep
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - name: Checkout codice
+        uses: actions/checkout@v4
+
+      - name: Scansione SAST con Semgrep
+        run: semgrep scan --config=auto --metrics=off || true
+
+  trivy-security-scan:
+    name: Trivy - Vulnerabilities & Misconfigurations
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout codice
+        uses: actions/checkout@v4
+
+      - name: Scansione Filesystem con Trivy (CVE, Config, Secrets)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          scanners: 'vuln,misconfig,secret'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
