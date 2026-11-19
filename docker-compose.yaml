@@ -1,0 +1,159 @@
+services:
+  accounts-db:
+    image: postgres:16.3-alpine
+    environment:
+      - POSTGRES_DB=accounts
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+
+  ledger-db:
+    image: postgres:16.3-alpine
+    environment:
+      - POSTGRES_DB=ledger
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432"
+
+  contacts:
+    build: ./src/accounts/contacts
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PORT=8080
+      - ACCOUNTS_DB_HOST=accounts-db
+      - ACCOUNTS_DB_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=accounts
+      - ACCOUNTS_DB_URI=postgresql://postgres:postgres@accounts-db:5432/accounts
+      - PUB_KEY_PATH=/app/jwt/jwtRS256.key.pub
+      - ENABLE_TRACING=false
+      - COLLECTOR_URL=http://jaeger:14268/api/traces
+      - VERSION=1.0.0
+    volumes:
+      - ./jwt:/app/jwt
+
+  userservice:
+    build: ./src/accounts/userservice
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PORT=8080
+      - ACCOUNTS_DB_HOST=accounts-db
+      - ACCOUNTS_DB_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=accounts
+      - ACCOUNTS_DB_URI=postgresql://postgres:postgres@accounts-db:5432/accounts
+      - TOKEN_EXPIRY_SECONDS=3600
+      - PRIV_KEY_PATH=/app/jwt/jwtRS256.key
+      - PUB_KEY_PATH=/app/jwt/jwtRS256.key.pub
+      - ENABLE_TRACING=false
+      - COLLECTOR_URL=http://jaeger:14268/api/traces
+      - VERSION=1.0.0
+    volumes:
+      - ./jwt:/app/jwt
+
+  loadgenerator:
+    build: ./src/loadgenerator
+    environment:
+      - FRONTEND_ADDR=frontend:8080
+      - USERS=10
+      - SPAWN_RATE=1
+
+  frontend:
+    build: ./src/frontend
+    ports:
+      - "8080:8080"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PORT=8080
+      - USERSERVICE_API_ADDR=userservice:8080
+      - CONTACTS_API_ADDR=contacts:8080
+      - TRANSACTIONS_API_ADDR=ledgerwriter:8080
+      - BALANCES_API_ADDR=balancereader:8080
+      - HISTORY_API_ADDR=transactionhistory:8080
+      - PUB_KEY_PATH=/app/jwt/jwtRS256.key.pub
+      - ENABLE_TRACING=false
+      - COLLECTOR_URL=http://jaeger:14268/api/traces
+      - VERSION=1.0.0
+    volumes:
+      - ./jwt:/app/jwt
+    depends_on:
+      - contacts
+      - userservice
+      - ledgerwriter
+      - balancereader
+      - transactionhistory
+
+  ledgerwriter:
+    image: ledgerwriter:1.0
+    environment:
+      - PORT=8080
+      - LEDGER_DB_HOST=ledger-db
+      - LEDGER_DB_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ledger
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ledger-db:5432/ledger
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - LOCAL_ROUTING_NUM=135790468
+      - BALANCES_API_ADDR=http://balancereader:8080
+      - PUB_KEY_PATH=/app/jwt/jwtRS256.key.pub
+      - ENABLE_TRACING=false
+      - COLLECTOR_URL=http://jaeger:14268/api/traces
+      - VERSION=1.0.0
+      - MANAGEMENT_METRICS_EXPORT_STACKDRIVER_ENABLED=false
+      - HOSTNAME=ledgerwriter-local-123
+      - SPRING_CLOUD_GCP_PROJECT_ID=local-dev
+      - JAVA_TOOL_OPTIONS=-XX:-OmitStackTraceInFastThrow
+    volumes:
+      - ./jwt:/app/jwt
+
+  balancereader:
+    image: balancereader:1.0
+    environment:
+      - PORT=8080
+      - LEDGER_DB_HOST=ledger-db
+      - LEDGER_DB_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ledger
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ledger-db:5432/ledger
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - LOCAL_ROUTING_NUM=135790468
+      - PUB_KEY_PATH=/app/jwt/jwtRS256.key.pub
+      - ENABLE_TRACING=false
+      - COLLECTOR_URL=http://jaeger:14268/api/traces
+      - VERSION=1.0.0
+      - MANAGEMENT_METRICS_EXPORT_STACKDRIVER_ENABLED=false
+      - HOSTNAME=balancereader-local-123
+      - SPRING_CLOUD_GCP_PROJECT_ID=local-dev
+    volumes:
+      - ./jwt:/app/jwt
+
+  transactionhistory:
+    image: transactionhistory:1.0
+    environment:
+      - PORT=8080
+      - LEDGER_DB_HOST=ledger-db
+      - LEDGER_DB_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ledger
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ledger-db:5432/ledger
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - LOCAL_ROUTING_NUM=135790468
+      - PUB_KEY_PATH=/app/jwt/jwtRS256.key.pub
+      - ENABLE_TRACING=false
+      - COLLECTOR_URL=http://jaeger:14268/api/traces
+      - VERSION=1.0.0
+      - MANAGEMENT_METRICS_EXPORT_STACKDRIVER_ENABLED=false
+      - HOSTNAME=transactionhistory-local-123
+      - SPRING_CLOUD_GCP_PROJECT_ID=local-dev
+    volumes:
+      - ./jwt:/app/jwt
