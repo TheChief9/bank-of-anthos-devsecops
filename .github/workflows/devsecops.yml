@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Scansione SAST con Semgrep
-        run: semgrep scan --config=auto --metrics=off || true
+        run: semgrep scan --config=p/default --metrics=off || true
 
   trivy-security-scan:
     name: Trivy - Vulnerabilities & Misconfigurations
