@@ -7,18 +7,29 @@ on:
     branches: [ "tesi-devsecops-anchor" ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
 jobs:
   sast-semgrep:
     name: SAST - Semgrep
     runs-on: ubuntu-latest
-    container:
-      image: semgrep/semgrep
     steps:
       - name: Checkout codice
         uses: actions/checkout@v4
 
-      - name: Scansione SAST con Semgrep
-        run: semgrep scan --config=p/default --metrics=off || true
+      - name: Scansione SAST con Semgrep (SARIF)
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/src" -w /src semgrep/semgrep \
+            semgrep scan --config=p/default --metrics=off --sarif --output=semgrep.sarif . || true
+
+      - name: Upload report Semgrep su GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
 
   trivy-security-scan:
     name: Trivy - Vulnerabilities & Misconfigurations
@@ -27,7 +38,7 @@ jobs:
       - name: Checkout codice
         uses: actions/checkout@v4
 
-      - name: Scansione Filesystem con Trivy (CVE, Config, Secrets)
+      - name: Scansione Filesystem con Trivy (SARIF)
         uses: aquasecurity/trivy-action@master
         env:
           TRIVY_OFFLINE_SCAN: 'true'
@@ -36,4 +47,12 @@ jobs:
           scan-ref: '.'
           scanners: 'vuln,misconfig,secret'
           severity: 'CRITICAL,HIGH'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
           exit-code: '0'
+
+      - name: Upload report Trivy su GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy
