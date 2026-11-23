@@ -41,4 +41,7 @@ ENV GEVENT_SUPPORT=True
 ENV LOG_LEVEL info
 
 # start loadgenerator
+RUN adduser --disabled-password --gecos "" appuser
+USER appuser
+
 ENTRYPOINT locust --host="http://${FRONTEND_ADDR}" --loglevel $LOG_LEVEL --headless --users="${USERS:-10}" 2>&1

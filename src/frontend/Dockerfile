@@ -38,4 +38,7 @@ ENV LOG_LEVEL info
 COPY . .
 
 # Start server using gunicorn
+RUN adduser --disabled-password --gecos "" appuser
+USER appuser
+
 CMD gunicorn -b :$PORT --threads 4 --log-config logging.conf --log-level=$LOG_LEVEL "frontend:create_app()"

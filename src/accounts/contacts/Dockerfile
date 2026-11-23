@@ -37,4 +37,7 @@ ENV LOG_LEVEL info
 # Add application code.
 COPY . .
 
+RUN adduser --disabled-password --gecos "" appuser
+USER appuser
+
 CMD gunicorn -b :$PORT --threads 4 --log-config logging.conf --log-level=$LOG_LEVEL "contacts:create_app()"
