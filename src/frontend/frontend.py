@@ -532,7 +532,11 @@ def create_app():
             resp.set_cookie(app.config['CONSENT_COOKIE'], 'true')
         else:
             app.logger.info('User consent denied.')
-            resp = make_response(redirect(redirect_uri + '#error=access_denied', 302))
+            allowed_uri = os.environ.get("ALLOWED_OAUTH_REDIRECT_URI")
+            if not allowed_uri or redirect_uri != allowed_uri:
+                app.logger.error("Invalid redirect_uri")
+                return "Invalid redirect_uri", 400
+            resp = make_response(redirect(allowed_uri + "#error=access_denied", 302))
         return resp
 
     def _auth_callback_helper(state, redirect_uri, token):
