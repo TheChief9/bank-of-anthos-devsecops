@@ -28,4 +28,7 @@ ENV USE_GKE_GCLOUD_AUTH_PLUGIN=True
 ENV XDG_CONFIG_HOME=/e2e
 
 # run custom bash script to set CYPRESS_baseUrl and execute tests
+RUN useradd -m testuser
+USER testuser
+
 ENTRYPOINT [ "/bin/bash", "-c", "./run_for_env.sh" ]

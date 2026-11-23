@@ -536,9 +536,13 @@ def create_app():
         return resp
 
     def _auth_callback_helper(state, redirect_uri, token):
+        allowed_uri = os.environ.get("ALLOWED_OAUTH_REDIRECT_URI")
+        if not allowed_uri or redirect_uri != allowed_uri:
+            app.logger.error("Invalid redirect_uri")
+            return "Invalid allowed_uri", 400
         try:
             app.logger.debug('Retrieving authorization code.')
-            callback_response = requests.post(url=redirect_uri,
+            callback_response = requests.post(url=allowed_uri,
                                               data={'state': state, 'id_token': token},
                                               timeout=app.config['BACKEND_TIMEOUT'],
                                               allow_redirects=False)
@@ -548,10 +552,10 @@ def create_app():
                 return make_response(redirect(location, 302))
 
             app.logger.error('Unexpected response status: %s', callback_response.status_code)
-            return make_response(redirect(redirect_uri + '#error=server_error', 302))
+            return make_response(redirect(allowed_uri + '#error=server_error', 302))
         except requests.exceptions.RequestException as err:
             app.logger.error('Error retrieving auth code: %s', str(err))
-        return make_response(redirect(redirect_uri + '#error=server_error', 302))
+        return make_response(redirect(allowed_uri + '#error=server_error', 302))
 
     @app.route("/signup", methods=['GET'])
     def signup_page():
@@ -616,7 +620,8 @@ def create_app():
     def decode_token(token):
         return jwt.decode(algorithms='RS256',
                           jwt=token,
-                          options={"verify_signature": False})
+                          key=app.config["PUBLIC_KEY"],
+                          options={"verify_signature": True})
 
     def verify_token(token):
         """
