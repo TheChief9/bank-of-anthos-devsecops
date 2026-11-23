@@ -6,9 +6,9 @@
 #
 blinker==1.8.2
     # via flask
-brotli==1.1.0
+brotli==1.2.0
     # via geventhttpclient
-certifi==2024.7.4
+certifi==2024.12.14
     # via
     #   geventhttpclient
     #   requests

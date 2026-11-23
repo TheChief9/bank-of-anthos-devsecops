@@ -16,7 +16,7 @@ cachetools==5.3.3
     # via
     #   -r requirements.in
     #   google-auth
-certifi==2024.7.4
+certifi==2024.12.14
     # via
     #   -r requirements.in
     #   requests
@@ -184,7 +184,7 @@ pycparser==2.22
     #   cffi
 pycryptodome==3.20.0
     # via -r requirements.in
-pyjwt==2.8.0
+pyjwt==2.14.0
     # via -r requirements.in
 pyparsing==3.1.2
     # via -r requirements.in
