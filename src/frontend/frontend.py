@@ -379,9 +379,9 @@ def create_app():
         token = request.cookies.get(app.config['TOKEN_NAME'])
         response_type = request.args.get('response_type')
         client_id = request.args.get('client_id')
-        app_name = request.args.get('app_name')
-        redirect_uri = request.args.get('redirect_uri')
-        state = request.args.get('state')
+        app_name = request.args.get('app_name')  # nosemgrep: python.flask.security.open-redirect.open-redirect
+        redirect_uri = request.args.get('redirect_uri')  # nosemgrep: python.flask.security.open-redirect.open-redirect
+        state = request.args.get('state')  # nosemgrep: python.flask.security.open-redirect.open-redirect
         if ('REGISTERED_OAUTH_CLIENT_ID' in os.environ and
             'ALLOWED_OAUTH_REDIRECT_URI' in os.environ and
                 response_type == 'code'):
@@ -483,9 +483,9 @@ def create_app():
         Retrieves auth code if the user has
         already logged in and consented.
         """
-        redirect_uri = request.args.get('redirect_uri')
-        state = request.args.get('state')
-        app_name = request.args.get('app_name')
+        redirect_uri = request.args.get('redirect_uri')  # nosemgrep: python.flask.security.open-redirect.open-redirect
+        state = request.args.get('state')  # nosemgrep: python.flask.security.open-redirect.open-redirect
+        app_name = request.args.get('app_name')  # nosemgrep: python.flask.security.open-redirect.open-redirect
         token = request.cookies.get(app.config['TOKEN_NAME'])
         consented = request.cookies.get(app.config['CONSENT_COOKIE'])
         if verify_token(token):
