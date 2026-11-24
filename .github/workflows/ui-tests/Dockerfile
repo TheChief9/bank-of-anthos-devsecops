@@ -24,6 +24,8 @@ RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.
 # RUN apt-get update
 RUN apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin kubectl curl
 
+# Falso positivo: flag booleano GKE SDK, non contiene segreti
+# trivy:ignore:DS-0031
 ENV USE_GKE_GCLOUD_AUTH_PLUGIN=True
 ENV XDG_CONFIG_HOME=/e2e
 
