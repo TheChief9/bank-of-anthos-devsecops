@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout codice
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Scansione SAST con Semgrep (SARIF)
         run: |
@@ -26,13 +26,13 @@ jobs:
             semgrep scan --config=p/default --metrics=off --sarif --output=semgrep.sarif . || true
 
       - name: Salva report Semgrep come Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: semgrep-sarif-report
           path: semgrep.sarif
 
       - name: Upload report Semgrep su GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@d2aacf54c2fbc910db8d7ec338fdb54ea48c692d # v3
         with:
           sarif_file: semgrep.sarif
           category: semgrep
@@ -42,10 +42,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout codice
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Scansione Filesystem con Trivy (SARIF)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         env:
           TRIVY_OFFLINE_SCAN: 'true'
         with:
@@ -58,13 +58,13 @@ jobs:
           exit-code: '0'
 
       - name: Salva report Trivy come Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: trivy-sarif-report
           path: trivy-results.sarif
 
       - name: Upload report Trivy su GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@d2aacf54c2fbc910db8d7ec338fdb54ea48c692d # v3
         with:
           sarif_file: trivy-results.sarif
           category: trivy
